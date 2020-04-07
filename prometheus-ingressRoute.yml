@@ -1,0 +1,15 @@
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: prometheus
+  namespace: monitoring
+spec:
+  entryPoints:
+    - http
+  routes:
+    - match: Host(`prometheus.example.com`)
+      kind: Rule
+      services:
+        - name: prometheus
+          port: 9090

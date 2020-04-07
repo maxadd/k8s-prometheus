@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: telegraf
+  namespace: monitoring
+  labels:
+    k8s-app: telegraf
+spec:
+  selector:
+    matchLabels:
+      name: telegraf
+  template:
+    metadata:
+      labels:
+        name: telegraf
+    spec:
+      containers:
+      - name: telegraf
+        image: telegraf:1.14.0-alpine
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 500m
+            memory: 500Mi
+        env:
+        - name: "HOST_PROC"
+          value: "/host/proc"
+        - name: "HOST_SYS"
+          value: "/host/sys"
+        - name: "HOST_MOUNT_PREFIX"
+          value: "/host"
+        volumeMounts:
+        - name: config
+          mountPath: /etc/telegraf
+          readOnly: true
+        - mountPath: /host
+          name: root
+          readOnly: true
+      hostNetwork: true
+      hostPID: true
+      nodeSelector:
+        kubernetes.io/os: linux
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+      tolerations:
+      - operator: Exists
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: config
+        configMap:
+          name: telegraf
+      - hostPath:
+          path: /
+        name: root

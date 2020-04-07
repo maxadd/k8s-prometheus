@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: telegraf
+  namespace: monitoring
+  labels:
+    name: telegraf
+data:
+  telegraf.conf: |+
+    [agent]
+      interval = "30s"
+      round_interval = true
+      collection_jitter = "1s"
+      omit_hostname = true
+    [[outputs.prometheus_client]]
+      listen = ":9273"
+      collectors_exclude = ["gocollector", "process"]
+      metric_version = 2
+    [[inputs.cpu]]
+      percpu = false
+      totalcpu = true
+      collect_cpu_time = false
+      report_active = false
+    [[inputs.disk]]
+      ignore_fs = ["tmpfs", "devtmpfs", "devfs", "iso9660", "overlay", "aufs", "squashfs"]
+      [inputs.disk.tagdrop]
+        path = ["/etc/telegraf", "/dev/termination-log", "/etc/hostname", "/etc/hosts", "/etc/resolv.conf"]
+    [[inputs.diskio]]
+    [[inputs.kernel]]
+    [[inputs.mem]]
+      fielddrop = ["slab", "wired", "commit_limit", "committed_as", "dirty", "high_free", "high_total", "huge_page_size", "huge_pages_free", "low_free", "low_total", "mapped", "page_tables", "sreclaimable", "sunreclaim", "swap_cached", "swap_free", "vmalloc_chunk", "vmalloc_total", "vmalloc_used", "write_back", "write_back_tmp"]
+    [[inputs.processes]]
+    [[inputs.system]]
+    [[inputs.netstat]]
+    [[inputs.net]]
+      ignore_protocol_stats = true
+      interfaces = ["eth*", "bond*", "em*"]
+      fielddrop = ["packets_sent", "packets_recv"]

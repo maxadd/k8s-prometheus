@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    k8s-app: kube-state-metrics
+  name: kube-state-metrics
+  namespace: monitoring
+spec:
+  clusterIP: None
+  ports:
+  - name: http-main
+    port: 10000
+    targetPort: 10000
+  - name: http-self
+    port: 10001
+    targetPort: 10001
+  selector:
+    app: kube-state-metrics

@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: prometheus
+    prometheus: k8s
+  name: prometheus
+  namespace: monitoring
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: prometheus
+      prometheus: k8s
+  serviceName: prometheus
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: prometheus
+        prometheus: k8s
+    spec:
+      securityContext:
+        runAsUser: 501
+      serviceAccount: prometheus-k8s
+      containers:
+        - args:
+            - --web.console.templates=/etc/prometheus/consoles
+            - --web.console.libraries=/etc/prometheus/console_libraries
+            - --config.file=/etc/prometheus/config/prometheus.yml
+            - --storage.tsdb.path=/prometheus
+            - --web.enable-admin-api
+            - --storage.tsdb.retention.time=20d
+            - --web.enable-lifecycle
+            - --storage.tsdb.no-lockfile
+            - --web.external-url=http://example.com/
+            - --web.route-prefix=/
+          image: prom/prometheus:v2.17.1
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 6
+            httpGet:
+              path: /-/healthy
+              port: web
+              scheme: HTTP
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: prometheus
+          ports:
+            - containerPort: 9090
+              name: web
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 120
+            httpGet:
+              path: /-/ready
+              port: web
+              scheme: HTTP
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            requests:
+              memory: 400Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /etc/prometheus/config
+              name: config
+              readOnly: true
+            - mountPath: /prometheus
+              name: prometheus-data
+              #subPath: prometheus-db
+            - mountPath: /etc/prometheus/rules/
+              name: prometheus-rulefiles
+            - mountPath: /etc/prometheus/secrets/etcd-client-cert
+              name: secret-etcd-client-cert
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            defaultMode: 420
+            name: prometheus
+        - name: prometheus-rulefiles
+          configMap:
+            defaultMode: 420
+            name: prometheus-rulefiles
+        - name: secret-etcd-client-cert
+          secret:
+            defaultMode: 420
+            secretName: etcd-client-cert
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+    - metadata:
+        name: prometheus-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 2Ti
+        volumeMode: Filesystem

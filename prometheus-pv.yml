@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: prometheus
+  labels:
+    name: prometheus
+spec:
+  nfs:
+    path: /ssd/share/prometheus
+    server: 10.2.1.1
+  accessModes: ["ReadWriteMany", "ReadWriteOnce"]
+  capacity:
+    storage: 2Ti

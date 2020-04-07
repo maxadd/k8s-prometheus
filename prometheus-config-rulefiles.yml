@@ -1,0 +1,7 @@
+apiVersion: v1
+data:
+  k8s.yml: ""
+kind: ConfigMap
+metadata:
+  name: prometheus-rulefiles
+  namespace: monitoring

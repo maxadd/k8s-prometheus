@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    k8s-app: telegraf
+  name: telegraf
+  namespace: monitoring
+spec:
+  ports:
+  - port: 9273
+    targetPort: 9273
+    protocol: TCP
+    name: telegraf
+  selector:
+    name: telegraf
