@@ -81,6 +81,16 @@ data:
         action: drop
       - action: labeldrop
         regex: (id|name|pod_name|image)
+    - job_name: kubelet
+      honor_labels: true
+      kubernetes_sd_configs:
+      - role: node
+      scrape_interval: 30s
+      metrics_path: /metrics
+      scheme: https
+      tls_config:
+        insecure_skip_verify: true
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
     - job_name: kube-dns
       honor_labels: false
       kubernetes_sd_configs:
